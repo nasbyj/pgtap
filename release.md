@@ -17,8 +17,6 @@ Here are the steps to take to make a release of pgTAP:
     +   Patches apply cleanly (try to eliminate Hunk warnings for patches to
         `pgtap.sql` itself, usually by fixing line numbers)
 
-    +   All files are installed (on 8.3 and earlier that includes pgtap.so).
-
     +   `ALTER EXTENSION pgtap UPDATE;` works on 9.1 and higher.
 
     +   `CREATE EXTENSION pgtap;` works on 9.1 and higher.
