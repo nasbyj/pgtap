@@ -99,6 +99,15 @@ SELECT is( value, :numb_tests, 'plan() should have stored the test count' )
  WHERE label = 'plan';
 
 /****************************************************************************/
+-- Verify that an unexpected error in a test doesn't cause a failure. Note that
+-- this is intentionally not the last test that we run!
+CREATE FUNCTION bad() RETURNS int LANGUAGE plpgsql AS $$
+BEGIN
+    bad;
+END$$;
+SELECT * FROM is(bad(), 0, '1/0 should explode');
+
+/****************************************************************************/
 -- Test ok()
 SELECT * FROM check_test( ok(true), true, 'ok(true)', '', '');
 SELECT * FROM check_test( ok(true, ''), true, 'ok(true, '''')', '', '' );

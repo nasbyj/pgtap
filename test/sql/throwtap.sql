@@ -307,16 +307,18 @@ SELECT * FROM check_test(
 -- Test ASSERTs
 SELECT lives_ok(
     CASE WHEN pg_version_num() < 90500 THEN $exec$
-CREATE FUNCTION check_assert(b boolean) RETURNS void LANGUAGE plpgsql AS $body$
+CREATE FUNCTION check_assert(b boolean) RETURNS boolean LANGUAGE plpgsql AS $body$
 BEGIN
     RAISE EXCEPTION 'this code should never be called!';
+    RETURN b;
 END
 $body$;
 $exec$
     ELSE $exec$
-CREATE FUNCTION check_assert(b boolean) RETURNS void LANGUAGE plpgsql AS $body$
+CREATE FUNCTION check_assert(b boolean) RETURNS boolean LANGUAGE plpgsql AS $body$
 BEGIN
     ASSERT b IS TRUE, 'assert description';
+    RETURN b;
 END
 $body$;
 $exec$
@@ -329,6 +331,16 @@ DECLARE
     tap record;
 BEGIN
     IF pg_version_num() >= 90500 THEN
+        FOR tap IN SELECT * FROM check_test(
+            ok( check_assert(false) ),
+            false,
+            'simple tap test does not die on assert',
+            'threw P0004: assert description',
+            ''
+        ) AS a(b) LOOP
+            RETURN NEXT tap.b;
+        END LOOP;
+
         FOR tap IN SELECT * FROM check_test(
             throws_ok( 'SELECT check_assert(false)', 'P0004', 'assert description' ),
             true,
